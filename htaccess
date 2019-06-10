@@ -1,0 +1,100 @@
+######################################################################
+## It is best to keep your htaccess files as clean as possible      ##
+## and set as many specs in your Apache config as you can.          ##
+## Htaccess slows down Apache.                                      ##
+## Review the entire file before use, especially the TODO sections. ##
+######################################################################
+
+Options -MultiViews
+Options +FollowSymLinks
+
+# Disable PHP errors on production
+# TODO: uncomment at will
+# php_flag display_startup_errors off
+# php_flag display_errors off
+# php_flag html_errors off
+# php_value docref_root 0
+# php_value docref_ext 0
+
+# Disable the server signature
+ServerSignature Off
+
+# Disable directory browsing
+Options All -Indexes
+
+# Rewrite section
+RewriteEngine on
+
+# Canonical rewrite non-www version to www, to avoid duplicate content issues
+# TODO: substitute MYDOMAIN.COM
+RewriteCond %{HTTP_HOST} ^MYDOMAIN\.COM$ [NC]
+RewriteRule ^(.*)$ http://www.MYDOMAIN.COM/$1 [R=301,L]
+
+# Rewrite index.php to /, to avoid duplicate content issues
+RewriteCond %{THE_REQUEST} ^.*/index\.php
+RewriteRule ^(.*)index.php$ http://%{HTTP_HOST}/$1 [R=301,L]
+
+# Throw a 403 forbidden on common brute force URIs
+# TODO: Uncomment appropriate uris and add more to your liking
+# RedirectMatch 403 ^/admin$
+# RedirectMatch 403 ^/administrator$
+# RedirectMatch 403 ^/wp-admin$
+# RedirectMatch 403 ^/wp-login.php$
+# RedirectMatch 403 ^/install.php$
+# RedirectMatch 403 ^/viewtopic.php$
+
+# Add 301 redirects using wildcard matching
+# RedirectMatch 301 old-news-articles/(.*) /news
+
+# Add 301 literal redirects for mapping old URLs to new ones
+# Redirect 301 /my-old-url /my-new/url
+
+# Pretty URLs
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^ index.php [L]
+# End of Rewrite section
+
+# Enable fonts loading from cross-origin recourse
+Header add Access-Control-Allow-Origin "*"
+
+# Disable browsers from being able to validate files, to improve speed
+Header unset ETag
+FileETag None
+# End of Disable browsers from being able to validate files
+
+# Set compression to reduce bandwith
+<IfModule mod_deflate.c>
+    SetOutputFilter DEFLATE
+    # Don't compress images
+    SetEnvIfNoCase Request_URI \.(?:gif|jpe?g|png)$ no-gzip dont-vary
+    AddOutputFilterByType DEFLATE text/plain
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/xml
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE application/xml
+    AddOutputFilterByType DEFLATE application/xhtml+xml
+    AddOutputFilterByType DEFLATE application/rss+xml
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/x-javascript
+</IfModule>
+# End of Set compression
+
+# Set browser caching to reduce http requests
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpg "access plus 1 month"
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/gif "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType text/css "access 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType image/x-icon "access plus 1 year"
+    ExpiresDefault "access plus 1 month"
+</IfModule>
+# End of set browser caching
+
+<Files .htaccess>
+Order Allow,Deny
+Deny from all
+</Files>
